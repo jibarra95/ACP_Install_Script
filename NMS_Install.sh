@@ -1,4 +1,6 @@
 #!/bin/sh
+#This is not an official Airspan Script
+#This script is written and maintained by Jaime Ibarra as a way to facilitate the installation process of Airspan ACP Software
 
 options=($(ls /home/$USER/ | grep -e InstallNMS))
 if [ -z "$options" ]; then
@@ -11,7 +13,6 @@ do
         echo "you chose $NMS"
         break
 done
-
 
 sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2022.repo
 
