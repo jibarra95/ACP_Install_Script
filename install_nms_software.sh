@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #This is not an official Airspan Script
 #This script is written and maintained by Jaime Ibarra as a way to facilitate the installation process of Airspan ACP Software
 

@@ -1,38 +1,27 @@
-
 sudo yum -y install net-tools httpd-tools yum-utils nano tar wget
 
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
-
-
-# ********For RL and RHEL 8 remove the installed docker************
-# yum remove -y docker*
-# *****************************************************************
-#*******In case of Firewall Enable*****************************
-sudo firewall-cmd --permanent --add-service=https
-sudo firewall-cmd --permanent --add-port=443/tcp
-sudo firewall-cmd --permanent --add-port=20-22/tcp
-sudo firewall-cmd --reload
-sudo systemctl restart firewalld
-sudo firewall-cmd --list-all
-#**************************************************************
 
 sudo yum -y install docker-ce docker-ce-cli containerd.io
 sudo groupadd docker
 sudo usermod -aG docker $USER
 
-#sudo systemctl status docker
-#sudo systemctl status containerd
-#sudo systemctl start docker
 sudo systemctl enable docker
 
 
-wget https://github.com/docker/compose/releases/download/v2.11.2/docker-compose-linux-x86_64
+wget https://github.com/docker/compose/releases/download/v2.20.3/docker-compose-linux-x86_64
 cp docker-compose-linux-x86_64 docker-compose
 
 sudo cp docker-compose /usr/bin/
 sudo chmod +x /usr/bin/docker-compose
 sudo chown $USER:$USER /usr/bin/docker-compose docker-compose
-#docker-compose --version
+
+
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --permanent --add-port=443/tcp
+sudo firewall-cmd --permanent --add-port=20-22/tcp
+sudo firewall-cmd --reload
+sudo systemctl restart firewalld
 
 echo -e "--Please enter an FQDN for the CIR--\n---<hostname.domain-name.com>---"
 read cirfqdn
@@ -70,7 +59,6 @@ sudo cp ca.crt /etc/docker/certs.d/$cirfqdn/
 
 sudo cp ca.crt /usr/share/ca-certificates/extra/
 sudo systemctl restart docker
-#systemctl status docker
 
 
 while true; do
@@ -94,8 +82,8 @@ read -p "Username:" ciruser
 
 cd ~/registry
 sudo chown $USER:$USER *.yaml
-sudo mv /home/$USER/registry.conf ~/registry/nginx/conf.d/
 cd ~/registry/auth && htpasswd -Bc registry.passwd $ciruser
+sudo mv /home/$USER/registry.conf ~/registry/nginx/conf.d/
 
 cd ~/registry/
 sudo docker-compose up -d

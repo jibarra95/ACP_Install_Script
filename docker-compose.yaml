@@ -1,0 +1,40 @@
+---
+version: '3'
+services:
+#Registry
+  registry:
+    image: registry:2
+    container_name: nms-reg-v1
+    restart: always
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry-Realm
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/registry.passwd
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    volumes:
+      - registrydata:/data
+      - ./auth:/auth
+    networks:
+      - mynet
+#Nginx Service
+  nginx:
+    image: nginx:alpine
+    container_name: nms-nginx-v1
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - ./nginx/ssl/:/etc/nginx/ssl/
+    networks:
+      - mynet
+#Docker Networks
+networks:
+  mynet:
+    driver: bridge
+#Volumes
+volumes:
+  registrydata:
+    driver: local
