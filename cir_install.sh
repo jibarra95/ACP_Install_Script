@@ -31,9 +31,10 @@ cp docker-compose-linux-x86_64 docker-compose
 
 sudo cp docker-compose /usr/bin/
 sudo chmod +x /usr/bin/docker-compose
-docker-compose --version
+sudo chown $USER:$USER /usr/bin/docker-compose docker-compose
+#docker-compose --version
 
-echo -e "--Please enter an FQDN for the CIR--"
+echo -e "--Please enter an FQDN for the CIR--\n---<hostname.domain-name.com>---"
 read cirfqdn
 
 mkdir -p ~/{workspace/sslca,registry/{auth,nginx/{conf.d,ssl}}}
@@ -71,39 +72,35 @@ sudo cp ca.crt /usr/share/ca-certificates/extra/
 sudo systemctl restart docker
 #systemctl status docker
 
-echo -e "--Create CirUser--"
+
+while true; do
+    if [ -f "/home/$USER/docker-compose.yaml" ] && [ -f "/home/$USER/registry.conf" ]; then
+        echo "Both files found in $directory."
+        break
+    else
+        echo -e "\033[1;33mPlace the registry.conf and docker-compose.yaml files in the /home/$USER directory\033[0m"
+        read -p "Press Enter to continue..."
+    fi
+done
+
+sudo sed -i "s/<hostname.domain-name.com>/$cirfqdn/g" "/home/$USER/registry.conf"
+
+
+sudo mv /home/$USER/docker-compose.yaml ~/registry/
+
+echo -e "*********************\n--Create CirUser--\n********************"
 read -p "Username:" ciruser
 
+
+cd ~/registry
+sudo chown $USER:$USER *.yaml
+sudo mv /home/$USER/registry.conf ~/registry/nginx/conf.d/
 cd ~/registry/auth && htpasswd -Bc registry.passwd $ciruser
 
-cat > ~/registry/nginx/conf.d/registry.conf <<-EOF
-server {
-    listen 443 ssl http2;
-    server_name $cirfqdn;
-    client_max_body_size 2000M;
-    ssl_certificate /etc/nginx/ssl/$cirfqdn.crt;
-    ssl_certificate_key /etc/nginx/ssl/$cirfqdn.key;
+cd ~/registry/
+sudo docker-compose up -d
 
-    # Log files for Debug
-    error_log  /var/log/nginx/error.log;
-    access_log /var/log/nginx/access.log;
+sudo docker login $cirfqdn
 
-    location / {
-        # Do not allow connections from docker 1.5 and earlier
-        # docker pre-1.6.0 did not properly set the user agent on ping, catch "Go *" user agents
-        if (\$http_user_agent ~ "^(docker\/1\.(3|4|5(?!\.[0-9]-dev))|Go ).*$" )  {
-            return 404;
-        }
 
-        proxy_pass                          http://registry:5000;
-        proxy_set_header  Host              \$http_host;
-        proxy_set_header  X-Real-IP         \$remote_addr;
-        proxy_set_header  X-Forwarded-For   \$proxy_add_x_forwarded_for;
-        proxy_set_header  X-Forwarded-Proto \$scheme;
-        proxy_read_timeout                  900;
-    }
-
-}
-EOF
-
-echo -e '\033[1;33mTake the docker-compose.yaml file provided by Airspan and place it in the ~/registry/ directory\033[0m'
+#echo -e '\033[1;33mTake the docker-compose.yaml file provided by Airspan and place it in the ~/registry/ directory\033[0m'
