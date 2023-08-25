@@ -1,3 +1,4 @@
+#!/bin/bash
 sudo yum -y install net-tools httpd-tools yum-utils nano tar wget
 
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
@@ -23,7 +24,7 @@ sudo firewall-cmd --permanent --add-port=20-22/tcp
 sudo firewall-cmd --reload
 sudo systemctl restart firewalld
 
-echo -e "--Please enter an FQDN for the CIR--\n---<hostname.domain-name.com>---"
+echo -e "\033[1;34m--Please enter an FQDN for the CIR--\n---<hostname.domain-name.com>---\033[0m"
 read cirfqdn
 
 mkdir -p ~/{workspace/sslca,registry/{auth,nginx/{conf.d,ssl}}}
@@ -73,10 +74,9 @@ done
 
 sudo sed -i "s/<hostname.domain-name.com>/$cirfqdn/g" "/home/$USER/registry.conf"
 
-
 sudo mv /home/$USER/docker-compose.yaml ~/registry/
 
-echo -e "*********************\n--Create CirUser--\n********************"
+echo -e "\033[1;31m****************\n*Create CirUser*\n****************\033[0m"
 read -p "Username:" ciruser
 
 
@@ -86,6 +86,13 @@ cd ~/registry/auth && htpasswd -Bc registry.passwd $ciruser
 sudo mv /home/$USER/registry.conf ~/registry/nginx/conf.d/
 
 cd ~/registry/
+
+if [ "$cirfqdn" = "$(cat /etc/hostname)" ]; then
+    echo "Hostname is correct."
+else
+    sudo hostnamectl set-hostname "$cirfqdn"
+fi
+
 sudo docker-compose up -d
 
 sudo docker login $cirfqdn
