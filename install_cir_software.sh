@@ -3,6 +3,9 @@ if [ "$(id -u)" -eq 0 ]; then
     echo "Please run this script on a different user"
     # Place your action for the root user here
 else
+    
+    mv docker-compose.yaml /home/$USER
+    mv registry.conf /home/$USER
     cd /home/$USER/
 
 fi
