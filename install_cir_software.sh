@@ -1,4 +1,14 @@
 #!/bin/bash
+if [ "$(id -u)" -eq 0 ]; then
+    echo "Please run this script on a different user"
+    # Place your action for the root user here
+else
+    cd /home/$USER/
+
+fi
+
+
+
 sudo yum -y install net-tools httpd-tools yum-utils nano tar wget
 
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
