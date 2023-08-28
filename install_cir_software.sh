@@ -1,14 +1,28 @@
 #!/bin/bash
+#This is not an official Airspan Script
+#This script is written and maintained by Jaime Ibarra as a way to facilitate the installation process of CIR Software
+move_to_home() {
+    if [ -f "$1" ]; then
+        if [ "$PWD/$1" != "/home/$USER/$1" ]; then
+            mv "$1" "/home/$USER/"
+            #echo "Moved $1 to /home/$USER/"
+        fi
+    else
+        echo "$1 does not exist."
+        exit 1
+    fi
+}
+
+
+#Script must be run as an administrator user 
 if [ "$(id -u)" -eq 0 ]; then
     echo "Please run this script on a different user"
     # Place your action for the root user here
-else
-    
-    mv docker-compose.yaml /home/$USER
-    mv registry.conf /home/$USER
-    cd /home/$USER/
-
 fi
+move_to_home "docker-compose.yaml"
+move_to_home "registry.conf"
+
+cd /home/$USER/
 
 
 
@@ -30,14 +44,15 @@ sudo cp docker-compose /usr/bin/
 sudo chmod +x /usr/bin/docker-compose
 sudo chown $USER:$USER /usr/bin/docker-compose docker-compose
 
-
+echo -e "Enabling Firewall Rules"
 sudo firewall-cmd --permanent --add-service=https
 sudo firewall-cmd --permanent --add-port=443/tcp
 sudo firewall-cmd --permanent --add-port=20-22/tcp
 sudo firewall-cmd --reload
 sudo systemctl restart firewalld
-
-echo -e "\033[1;34m--Please enter an FQDN for the CIR--\n---<hostname.domain-name.com>---\033[0m"
+echo -e "Done"
+#echo -e "\033[1;33m***************************************\n|-Please enter an FQDN to use for CIR-|\n|     <hostname.domain-name.com>      |\n***************************************\033[0m"
+echo -e "\033[1;33m ------------------------------------- \n| Please enter an FQDN to use for CIR |\n|     <hostname.domain-name.com>      |\n ------------------------------------- \033[0m"
 read cirfqdn
 
 mkdir -p ~/{workspace/sslca,registry/{auth,nginx/{conf.d,ssl}}}
@@ -89,7 +104,8 @@ sudo sed -i "s/<hostname.domain-name.com>/$cirfqdn/g" "/home/$USER/registry.conf
 
 sudo mv /home/$USER/docker-compose.yaml ~/registry/
 
-echo -e "\033[1;31m****************\n*Create CirUser*\n****************\033[0m"
+#echo -e "\033[1;33m**********************\n|   Create CirUser   |\n**********************\033[0m"
+echo -e "\033[1;33m -------------------- \n|   Create CirUser   |\n -------------------- \033[0m"
 read -p "Username:" ciruser
 
 
@@ -108,6 +124,7 @@ fi
 
 sudo docker-compose up -d
 
+echo -e "\033[1;33m ------------------- \n|   Log in to CIR   |\n ------------------- \033[0m"
 sudo docker login $cirfqdn
 
 
