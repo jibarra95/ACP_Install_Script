@@ -25,10 +25,10 @@ else
         done
 fi
 
-#For CentOS 7 uncomment the lines below
+#For CentOS 7 uncomment the lines below (29)
 #sudo rpm -Uvh https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm 
 
-#For CentOS 7 Comment out the line containing "rhel/8/mssql-server-2022.repo" and uncomment the "rhel/7/mssql-server-2019.repo"
+#For CentOS 7 Comment out the line containing "rhel/8/mssql-server-2022.repo"(32) and uncomment the "rhel/7/mssql-server-2019.repo"(33)
 sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2022.repo
 #sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/7/mssql-server-2019.repo
 
@@ -76,6 +76,7 @@ while true; do
             echo -e '\033[1;31mPassword must be 8 characters long contain 1 of each [A-Z],[a-z],[0-9],[!,$,#,%]\033[0m'
         fi
 done
+echo "$sa_password" > /home/$USER/acp_info.txt
 sudo ACCEPT_EULA='Y' MSSQL_PID='Express' MSSQL_SA_PASSWORD="$sa_password" MSSQL_LCID='1033' MSSQL_BACKUP_DIR='/var/opt/mssql/sql_backup' MSSQL_DATA_DIR='/var/opt/mssql/sql_data' MSSQL_LOG_DIR='/var/opt/mssql/sql_log' /opt/mssql/bin/mssql-conf setup
 
 sudo systemctl start mssql-server
