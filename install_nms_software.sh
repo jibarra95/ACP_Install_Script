@@ -25,12 +25,21 @@ else
         done
 fi
 
-#For CentOS 7 uncomment the lines below (29)
-#sudo rpm -Uvh https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm 
+#Default Repo For Rocky/Oracle
+repo="/etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2022.repo"
 
-#For CentOS 7 Comment out the line containing "rhel/8/mssql-server-2022.repo"(32) and uncomment the "rhel/7/mssql-server-2019.repo"(33)
-sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2022.repo
-#sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/7/mssql-server-2019.repo
+#Check for CentOS 7
+centos_version=$(cat /etc/centos-release | grep -oP '\d+' | head -1)
+
+if [[ "$centos_version" == "7" ]]; then
+    echo "CentOS 7 detected."
+    
+    repo= "/etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/7/mssql-server-2019.repo"
+    sudo rpm -Uvh https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm 
+
+fi
+
+sudo curl -o $repo
 
 sudo yum install -y mssql-server
 sudo yum install -y wget 
