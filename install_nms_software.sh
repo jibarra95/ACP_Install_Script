@@ -25,6 +25,27 @@ else
         done
 fi
 
+
+#Check for .pem certificate if USA ACP installation
+if [[ "$NMS" == *"USA"* ]]; then
+
+        pem_file_path=$(sudo find / -name "CBRS_PKI_Chain.pem")
+        if [ -z "$pem_file_path" ]; then
+
+                #If .pem not found
+                echo -e "\033[1;31mPlease place the provided Sub-CA X.509 certificate (.pem file) in /etc/pki/ca-trust/source/anchors/\033[0m"
+                exit 1
+        else
+                original_directory=$(dirname "$pem_file_path")
+                if [[ $original_directory != "/etc/pki/ca-trust/source/anchors" ]]; then
+
+                        sudo mv $pem_file_path "/etc/pki/ca-trust/source/anchors/"
+                fi
+                echo -e "Extracting Sub-CA Certificate..."
+                sudo update-ca-trust extract
+        fi
+fi
+
 #Default Repo For Rocky/Oracle
 repo="/etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2022.repo"
 
@@ -105,6 +126,3 @@ cd /home/$USER/nmsinstall
 cp /home/$USER/$NMS /home/$USER/nmsinstall/$NMS
 sudo chmod 777 $NMS 
 sudo ./$NMS install -s 127.0.0.1 -u sa -p $sa_password -a /opt/nms_data -d /var/opt/mssql/sql_data --start-services true --auto-services true --licence-agreed true
-
-
-
