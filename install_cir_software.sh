@@ -1,6 +1,9 @@
 #!/bin/bash
 #This is not an official Airspan Script
 #This script is written and maintained by Jaime Ibarra as a way to facilitate the installation process of CIR Software
+
+#Description: This function checks for the locaiton of a file and moves it to /home/$USER
+#Usecase: Moves registry.conf and docker-compose.yaml files if not in the right place.
 move_to_home() {
     if [ -f "$1" ]; then
         if [ "$PWD/$1" != "/home/$USER/$1" ]; then
@@ -14,21 +17,24 @@ move_to_home() {
 }
 
 
-#Script must be run as an administrator user 
+#Makes sure script is not run while logged in as root.
 if [ "$(id -u)" -eq 0 ]; then
     echo "Please run this script on a different user"
     # Place your action for the root user here
 fi
+
 move_to_home "docker-compose.yaml"
 move_to_home "registry.conf"
 
 cd /home/$USER/
-
-
-
+###################################################################
+#INSTALL PACKAGES
+###################################################################
 sudo yum -y install net-tools httpd-tools yum-utils nano tar wget
 
+#Comment out centos link if using on rhel.
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
+#sudo yum-config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 
 sudo yum -y install docker-ce docker-ce-cli containerd.io
 sudo groupadd docker
@@ -36,14 +42,15 @@ sudo usermod -aG docker $USER
 
 sudo systemctl enable docker
 
-
 wget https://github.com/docker/compose/releases/download/v2.20.3/docker-compose-linux-x86_64
 cp docker-compose-linux-x86_64 docker-compose
 
 sudo cp docker-compose /usr/bin/
 sudo chmod +x /usr/bin/docker-compose
 sudo chown $USER:$USER /usr/bin/docker-compose docker-compose
-
+###################################################################
+#FIREWALL RULES
+###################################################################
 echo -e "Enabling Firewall Rules"
 sudo firewall-cmd --permanent --add-service=https
 sudo firewall-cmd --permanent --add-port=443/tcp
@@ -51,6 +58,10 @@ sudo firewall-cmd --permanent --add-port=20-22/tcp
 sudo firewall-cmd --reload
 sudo systemctl restart firewalld
 echo -e "Done"
+
+###################################################################
+#CONFIGURE CIR
+###################################################################
 #echo -e "\033[1;33m***************************************\n|-Please enter an FQDN to use for CIR-|\n|     <hostname.domain-name.com>      |\n***************************************\033[0m"
 echo -e "\033[1;33m ------------------------------------- \n| Please enter an FQDN to use for CIR |\n|     <hostname.domain-name.com>      |\n ------------------------------------- \033[0m"
 read cirfqdn
@@ -124,6 +135,9 @@ fi
 
 sudo docker-compose up -d
 
+###################################################################
+#Verify CIR Login Works
+###################################################################
 echo -e "\033[1;33m ------------------- \n|   Log in to CIR   |\n ------------------- \033[0m"
 sudo docker login $cirfqdn
 
