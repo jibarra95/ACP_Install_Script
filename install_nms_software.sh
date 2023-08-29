@@ -2,6 +2,11 @@
 #This is not an official Airspan Script
 #This script is written and maintained by Jaime Ibarra as a way to facilitate the installation process of Airspan ACP Software
 
+#Makes sure script is not run while logged in as root.
+if [ "$(id -u)" -eq 0 ]; then
+    echo "Please run this script on a different user"
+    # Place your action for the root user here
+fi
 
 #Option Menu for selecting which NMS to install.
 options=($(ls /home/$USER/ | grep -e InstallNMS))
@@ -20,7 +25,12 @@ else
         done
 fi
 
+#For CentOS 7 uncomment the lines below
+#sudo rpm -Uvh https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm 
+
+#For CentOS 7 Comment out the line containing "rhel/8/mssql-server-2022.repo" and uncomment the "rhel/7/mssql-server-2019.repo"
 sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2022.repo
+#sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/7/mssql-server-2019.repo
 
 sudo yum install -y mssql-server
 sudo yum install -y wget 
