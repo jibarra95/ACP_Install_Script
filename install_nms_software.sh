@@ -27,6 +27,7 @@ fi
 
 
 #Check for .pem certificate if USA ACP installation
+ca_flag=0
 if [[ "$NMS" == *"USA"* ]]; then
 
         pem_file_path=$(sudo find / -name "CBRS_PKI_Chain.pem")
@@ -41,8 +42,7 @@ if [[ "$NMS" == *"USA"* ]]; then
 
                         sudo mv $pem_file_path "/etc/pki/ca-trust/source/anchors/"
                 fi
-                echo -e "Extracting Sub-CA Certificate..."
-                sudo update-ca-trust extract
+                ca_flag=1
         fi
 fi
 
@@ -120,6 +120,12 @@ tar -xvf helm_install.tar.gz
 cd linux-amd64
 sudo cp helm /usr/local/bin/
 
+#Extract .pem certificate
+if [[ $ca_flag -eq 1 ]]; then
+        sudo update-ca-trust extract
+        echo -e "Extracting Sub-CA Certificate..."
+fi
+        
 sudo mkdir /home/$USER/nmsinstall
 sudo chmod 777 /home/$USER/nmsinstall
 cd /home/$USER/nmsinstall
