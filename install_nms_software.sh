@@ -34,14 +34,18 @@ if [[ "$NMS" == *"USA"* ]]; then
         if [ -z "$pem_file_path" ]; then
 
                 #If .pem not found
-                echo -e "\033[1;31mPlease place the provided Sub-CA X.509 certificate (.pem file) in /etc/pki/ca-trust/source/anchors/\033[0m"
-                exit 1
+                echo -e "\033[1;31mNo Sub-CA X.509 certificate (.pem file) detected\nDo you wish to continue? [Type \"Yes\" to continue with installation]\033[0m"
+                read continue_exception
+                if [[ $continue_exception != 'Yes' ]]; then
+                        exit 1
+                fi
         else
                 original_directory=$(dirname "$pem_file_path")
                 if [[ $original_directory != "/etc/pki/ca-trust/source/anchors" ]]; then
 
                         sudo mv $pem_file_path "/etc/pki/ca-trust/source/anchors/"
                 fi
+                echo "Setting ca_flag to 1"
                 ca_flag=1
         fi
 fi
